@@ -122,7 +122,7 @@ TOKEN_EXPIRY •	Rate-limiting can be added via actix-governor
 ## 📁 Project Structure
 
 ```
-twilio_rust/
+tiny_twilio_stripe/
 ├── src/
 │   ├── main.rs            # Actix server entry point
 │   ├── twilio/

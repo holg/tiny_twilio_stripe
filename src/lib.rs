@@ -1,6 +1,6 @@
-//! # twilio_rust
+//! # tiny_twilio_stripe
 //!
-//! `twilio_rust` is an extensible Actix-Web backend for generating [Twilio Video](https://www.twilio.com/video) tokens,
+//! `tiny_twilio_stripe` is an extensible Actix-Web backend for generating [Twilio Video](https://www.twilio.com/video) tokens,
 //! and optionally initiating [Stripe Checkout](https://stripe.com/docs/payments/checkout) sessions.
 //!
 //! ## ✅ Features
