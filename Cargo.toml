@@ -3,7 +3,7 @@ name = "twilio_rust"
 version = "0.1.0"
 edition = "2021"
 authors = ["Holger Trahe<trahe@mac.com>"]
-
+exclude = ["target/", ".env.*", "secrets/", ".git/"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
 default = []
@@ -13,7 +13,7 @@ stripe = ["reqwest"]
 actix-web = "4"         # Web framework
 serde = { version = "1.0", features = ["derive"] } # For serializing/deserializing data (query params, JSON)
 serde_json = "1.0"      # For JSON handling
-jsonwebtoken = "8"      # For creating and signing JWTs
+jsonwebtoken = "9"      # For creating and signing JWTs
 chrono = { version = "0.4", features = ["serde"] } # For handling timestamps (token expiration)
 dotenv = "0.15"
 reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls"], optional=true}
@@ -21,7 +21,7 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "mul
 actix-governor = "0.8"
 hmac = "0.12"           # Needed for JWT signing algorithm
 sha2 = "0.10"
-once_cell = "1.21.3"           # Needed for JWT signing algorithm (SHA256)
+once_cell = "1.21"           # Needed for JWT signing algorithm (SHA256)
 
 #[profile.release]
 #panic = "abort"
