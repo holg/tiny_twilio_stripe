@@ -1,5 +1,5 @@
 [package]
-name = "twilio_rust"
+name = "tiny_twilio_stripe"
 version = "0.1.0"
 edition = "2021"
 authors = ["Holger Trahe<trahe@mac.com>"]
