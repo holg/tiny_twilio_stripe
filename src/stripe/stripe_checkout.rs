@@ -4,14 +4,32 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::env;
 
+/// Represents a request to create a Stripe checkout session.
+///
+/// This struct is used to deserialize the JSON payload received in the request
+/// to create a Stripe checkout session. It contains the necessary information
+/// about the room and the user identity.
+///
+/// # Fields
+///
+/// * `room_name` - The name of the room for which the checkout session is being created.
+/// * `identity` - The identity of the user initiating the checkout session.
 #[derive(Deserialize)]
 pub struct CheckoutRequest {
     pub room_name: String,
     pub identity: String,
 }
 
+/// Represents the response from the Stripe API containing the checkout session URL.
+///
+/// This struct is used to serialize the JSON response that will be sent back to the client
+/// after successfully creating a Stripe checkout session.
+///
+/// # Fields
+///
+/// * `url` - The URL of the created Stripe checkout session.
 #[derive(Serialize)]
-struct StripeResponse {
+pub struct StripeResponse {
     url: String,
 }
 

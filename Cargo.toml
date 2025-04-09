@@ -3,11 +3,25 @@ name = "twilio_rust"
 version = "0.1.0"
 edition = "2021"
 authors = ["Holger Trahe<trahe@mac.com>"]
+description = "A simple Actix-Web server providing Twilio Video access tokens and optional Stripe Checkout sessions."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/holg/twilio_rust"
+homepage = "https://github.com/holg/twilio_rust"
+documentation = "https://docs.rs/twilio_rust"
+keywords = ["twilio", "video", "actix", "stripe", "webrtc"]
+categories = ["network-programming", "web-programming::http-server"]
 exclude = ["target/", ".env.*", "secrets/", ".git/"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[package.metadata.docs.rs]
+features = ["stripe"]
+
 [features]
 default = []
 stripe = ["reqwest"]
+
+[lib]
+path = "src/lib.rs"
 
 [dependencies]
 actix-web = "4"         # Web framework
