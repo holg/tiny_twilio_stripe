@@ -29,7 +29,7 @@ jobs:
     - name: Install FreeBSD dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang lld libc6-dev-i386
+        sudo apt-get install -y clang lld libc6-dev-i386 gcc
 
     # Step 4: Build the project for FreeBSD
     - name: Build for FreeBSD
