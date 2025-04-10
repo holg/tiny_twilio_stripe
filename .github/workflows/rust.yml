@@ -1,37 +1,44 @@
-name: Rust CI
+name: Rust Cross-Compilation
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-unknown-freebsd
-
     steps:
     - uses: actions/checkout@v4
 
+    # Install Rust with required targets
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: |
+          x86_64-unknown-linux-gnu
+          x86_64-unknown-freebsd
 
-    - name: Install dependencies
+    # Install required system packages (cross-compilers)
+    - name: Install build-essential and cross-compilation tools
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential gcc clang llvm
+        sudo apt update
+        sudo apt install -y build-essential gcc clang llvm pkg-config
+        sudo apt install -y gcc-x86-64-linux-gnu
+        sudo apt install -y gcc-multilib
 
-    - name: Install Rust target
-      run: rustup target add ${{ matrix.target }}
+    # For FreeBSD, install cross linker via cross
+    - name: Install cross
+      uses: taiki-e/install-action@cross
 
-    - name: Install linker for FreeBSD
-      if: matrix.target == 'x86_64-unknown-freebsd'
-      run: |
-        sudo apt-get install -y clang lld
-        mkdir -p ~/.cargo
-        echo '[target.x86_64-unknown-freebsd]' >> ~/.cargo/config.toml
-        echo 'linker = "clang"' >> ~/.cargo/config.toml
+    # Build for Linux (native)
+    - name: Build (Linux x86_64)
+      run: cargo build --verbose --target=x86_64-unknown-linux-gnu
 
-    - name: Build project
-      run: cargo build --target ${{ matrix.target }} --verbose
+    # Cross-build for FreeBSD (cross)
+    - name: Cross-build (FreeBSD x86_64)
+      run: cross build --verbose --target=x86_64-unknown-freebsd
