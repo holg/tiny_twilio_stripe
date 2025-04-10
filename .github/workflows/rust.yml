@@ -16,11 +16,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    container:
-      image: rustembedded/cross:${{ matrix.target }}
-
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cross build --release --target ${{ matrix.target }}
