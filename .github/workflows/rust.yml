@@ -32,6 +32,11 @@ jobs:
 
       - name: Install cross
         run: cargo install cross --git https://github.com/cross-rs/cross
+      - name: Symlink gcc to expected linker name
+        run: |
+          which gcc
+          sudo ln -s "$(which gcc)" /usr/bin/x86_64-unknown-linux-gnu-gcc
+
 
       - name: Build FreeBSD binary (using cross)
         run: cross build --release --target x86_64-unknown-freebsd
