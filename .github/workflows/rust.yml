@@ -2,40 +2,34 @@ name: Rust FreeBSD Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
-env:
-  CARGO_TERM_COLOR: always
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout the code
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # Step 2: Set up the Rust toolchain and add the FreeBSD target
-    - name: Install Rust and FreeBSD target
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        target: x86_64-unknown-freebsd
-        override: true
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
-    # Step 3: Install FreeBSD cross-compilation dependencies
-    - name: Install FreeBSD dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y clang lld libc6-dev-i386 gcc
+      - name: Install required dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-multilib
 
-    # Step 4: Build the project for FreeBSD
-    - name: Build for FreeBSD
-      run: cargo build --target x86_64-unknown-freebsd --verbose
+      - name: Build project
+        run: cargo build --verbose
 
-    # Step 5: Test the project (Optional: Only if tests can run for the FreeBSD target)
-    # Uncomment the following if testing is possible for FreeBSD builds
-    # - name: Run tests
-    #   run: cargo test --target x86_64-unknown-freebsd --verbose
+      - name: Run tests
+        run: cargo test --verbose
