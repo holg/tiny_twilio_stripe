@@ -39,7 +39,11 @@ jobs:
           cat >> ~/.cargo/config.toml <<EOF
           [target.x86_64-unknown-freebsd]
           linker = "clang"
+          ar = "llvm-ar"
           EOF
+          export CARGO_TARGET_X86_64_UNKNOWN_FREEBSD_LINKER=clang
+          export CARGO_TARGET_X86_64_UNKNOWN_FREEBSD_AR=llvm-ar
+          rustup target add x86_64-unknown-freebsd
 
       - name: Build project
         run: cargo build --release --target ${{ matrix.target }}
