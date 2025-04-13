@@ -1,2 +1,10 @@
 target
 .env.secret
+.env.test_calendly
+onlyslave.db
+onlyslave.db-shm
+onlyslave.db-wal
+tiny_twilio_stripe.png
+twilio_tiny.db
+twilio_tiny.db-shm
+twilio_tiny.db-wal
