@@ -6,12 +6,12 @@ mod utils;
 #[cfg(feature = "stripe")]
 use reqwest::Client;
 #[cfg(feature = "stripe")]
-use stripe::stripe_checkout::create_checkout_session;
+use stripe::stripe_checkout::create_checkout_session_handler;
 
+use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{web, App, HttpServer};
 use std::env;
-use twilio::twilio_token::{generate_token, TwilioConfig};
-use actix_governor::{Governor, GovernorConfigBuilder};
+use twilio::twilio_token::{generate_token_handler, TwilioConfig};
 
 /// The main entry point for the application.
 ///
@@ -36,7 +36,7 @@ use actix_governor::{Governor, GovernorConfigBuilder};
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // 👇 Load env file from args
-    let env_file =utils::ensure_dotenv_loaded();
+    let env_file = utils::ensure_dotenv_loaded();
 
     println!("📦 Loading environment from {env_file}");
     dotenv::from_filename(&env_file).expect("Failed to load specified .env file");
@@ -69,7 +69,7 @@ async fn main() -> std::io::Result<()> {
     {
         if !use_stripe {
             println!("ℹ️ Stripe is compiled in, but disabled via USE_STRIPE=false.");
-        }else {
+        } else {
             println!("ℹ️ Using Stripe for checkout.");
         }
     }
@@ -93,7 +93,7 @@ async fn main() -> std::io::Result<()> {
         let app = App::new()
             .wrap(Governor::new(&governor_conf))
             .app_data(web::Data::new(twilio_config.clone()))
-            .route("/api/generate-token", web::get().to(generate_token));
+            .route("/api/generate-token", web::get().to(generate_token_handler));
 
         #[cfg(feature = "stripe")]
         {
@@ -101,13 +101,13 @@ async fn main() -> std::io::Result<()> {
                 let client = Client::new();
                 return app
                     .app_data(web::Data::new(client))
-                    .service(create_checkout_session);
+                    .service(create_checkout_session_handler);
             }
         }
 
         app
     })
-        .bind(("127.0.0.1", server_port))?
-        .run()
-        .await
+    .bind(("127.0.0.1", server_port))?
+    .run()
+    .await
 }

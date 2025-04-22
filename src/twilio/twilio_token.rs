@@ -1,10 +1,10 @@
-use actix_web::{web, Responder, HttpResponse, Result as ActixResult};
+use crate::utils::ensure_dotenv_loaded;
+use actix_web::{web, HttpResponse, Responder, Result as ActixResult};
+use chrono::{Duration, Utc};
+use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
-use jsonwebtoken::{encode, Header, EncodingKey, Algorithm};
-use chrono::{Utc, Duration};
 use std::env;
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::utils::ensure_dotenv_loaded;
 
 /// Represents the configuration required for Twilio API access.
 ///
@@ -152,10 +152,23 @@ pub struct TokenResponse {
 /// an `HttpResponse::Ok` with a JSON body containing the generated token.
 /// On failure, it returns an `HttpResponse::InternalServerError` with an
 /// error message.
-pub async fn generate_token(
+pub async fn generate_token_handler(
     query: web::Query<TokenRequestQuery>,
     config: web::Data<TwilioConfig>,
 ) -> ActixResult<impl Responder> {
+    match generate_token(&query.0, config.as_ref()) {
+        Ok(token) => Ok(HttpResponse::Ok().json(TokenResponse { token })),
+        Err(e) => {
+            eprintln!("Error generating token: {}", e);
+            Ok(HttpResponse::InternalServerError().body("Failed to generate token"))
+        }
+    }
+}
+
+pub fn generate_token(
+    query: &TokenRequestQuery,
+    config: &TwilioConfig,
+) -> Result<String, jsonwebtoken::errors::Error> {
     let now_secs = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards")
@@ -183,17 +196,18 @@ pub async fn generate_token(
         },
     };
 
-    println!("DEBUG: Generating token with iss(SK): {}, sub(AC): {}", claims.iss, claims.sub);
+    println!(
+        "DEBUG: Generating token with iss(SK): {}, sub(AC): {}",
+        claims.iss, claims.sub
+    );
 
     let mut header = Header::new(Algorithm::HS256);
     header.cty = Some("twilio-fpa;v=1".to_string());
     header.typ = Some("JWT".to_string());
 
-    match encode(&header, &claims, &EncodingKey::from_secret(config.api_key_secret.as_ref())) {
-        Ok(token) => Ok(HttpResponse::Ok().json(TokenResponse { token })),
-        Err(e) => {
-            eprintln!("Error generating token: {}", e);
-            Ok(HttpResponse::InternalServerError().body("Failed to generate token"))
-        }
-    }
+    encode(
+        &header,
+        &claims,
+        &EncodingKey::from_secret(config.api_key_secret.as_ref()),
+    )
 }
