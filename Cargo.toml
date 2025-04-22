@@ -30,7 +30,7 @@ serde_json = "1.0"      # For JSON handling
 jsonwebtoken = "9"      # For creating and signing JWTs
 chrono = { version = "0.4", features = ["serde"] } # For handling timestamps (token expiration)
 dotenv = "0.15"
-reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls"], optional=true}
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls"], optional = true }
 # To load environment variables from a .env file during development (optional)
 actix-governor = "0.8"
 hmac = "0.12"           # Needed for JWT signing algorithm

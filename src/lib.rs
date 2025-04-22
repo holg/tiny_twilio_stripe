@@ -56,8 +56,8 @@
 //!
 //! MIT License © [Holger Trahe](https://github.com/holg)
 
-pub mod utils;
 pub mod twilio;
+pub mod utils;
 
 #[cfg(feature = "stripe")]
 pub mod stripe;

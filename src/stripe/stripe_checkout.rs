@@ -53,45 +53,17 @@ pub struct StripeResponse {
 /// response containing the URL of the created Stripe checkout session. In case of an error,
 /// it returns an HTTP 500 Internal Server Error with an appropriate error message.
 #[post("/api/create-checkout-session")]
-pub async fn create_checkout_session(
+pub async fn create_checkout_session_handler(
     req: web::Json<CheckoutRequest>,
     client: web::Data<Client>,
 ) -> impl Responder {
-    let stripe_secret = env::var("STRIPE_SECRET_KEY").expect("Missing STRIPE_SECRET_KEY");
-    let success_url_template = env::var("STRIPE_SUCCESS_URL").expect("Missing STRIPE_SUCCESS_URL");
-    let cancel_url = env::var("STRIPE_CANCEL_URL").expect("Missing STRIPE_CANCEL_URL");
-    let currency = env::var("STRIPE_CURRENCY").unwrap_or_else(|_| "eur".to_string()).to_lowercase();
-    let unit_amount = env::var("STRIPE_UNIT_AMOUNT").unwrap_or_else(|_| "10".to_string());
-    let product_name = env::var("STRIPE_PRODUCT_NAME").unwrap_or_else(|_| "Private Twilio Session".to_string());
-
-    let success_url = success_url_template
-        .replace("{room}", &req.room_name)
-        .replace("{identity}", &req.identity);
-
-    let params = [
-        ("success_url", success_url),
-        ("cancel_url", cancel_url),
-        ("mode", "payment".to_string()),
-        ("line_items[0][price_data][currency]", currency),
-        ("line_items[0][price_data][unit_amount]", unit_amount),
-        ("line_items[0][price_data][product_data][name]", product_name),
-        ("line_items[0][quantity]", "1".to_string()),
-        ("metadata[room_name]", req.room_name.clone()),
-        ("metadata[identity]", req.identity.clone()),
-    ];
-
-    let response = client
-        .post("https://api.stripe.com/v1/checkout/sessions")
-        .basic_auth(stripe_secret, Some(""))
-        .form(&params)
-        .send()
-        .await;
-
-    match response {
+    match create_checkout_session(&req.0, &client).await {
         Ok(res) => match res.json::<serde_json::Value>().await {
             Ok(json) => {
                 if let Some(url) = json.get("url").and_then(|u| u.as_str()) {
-                    HttpResponse::Ok().json(StripeResponse { url: url.to_string() })
+                    HttpResponse::Ok().json(StripeResponse {
+                        url: url.to_string(),
+                    })
                 } else {
                     eprintln!("Missing URL in Stripe response: {json:#?}");
                     HttpResponse::InternalServerError().body("Stripe response malformed")
@@ -107,4 +79,45 @@ pub async fn create_checkout_session(
             HttpResponse::InternalServerError().body("Stripe session creation failed")
         }
     }
+}
+
+pub async fn create_checkout_session(
+    req: &CheckoutRequest,
+    client: &Client,
+) -> Result<reqwest::Response, reqwest::Error> {
+    let stripe_secret = env::var("STRIPE_SECRET_KEY").expect("Missing STRIPE_SECRET_KEY");
+    let success_url_template = env::var("STRIPE_SUCCESS_URL").expect("Missing STRIPE_SUCCESS_URL");
+    let cancel_url = env::var("STRIPE_CANCEL_URL").expect("Missing STRIPE_CANCEL_URL");
+    let currency = env::var("STRIPE_CURRENCY")
+        .unwrap_or_else(|_| "eur".to_string())
+        .to_lowercase();
+    let unit_amount = env::var("STRIPE_UNIT_AMOUNT").unwrap_or_else(|_| "10".to_string());
+    let product_name =
+        env::var("STRIPE_PRODUCT_NAME").unwrap_or_else(|_| "Private Twilio Session".to_string());
+
+    let success_url = success_url_template
+        .replace("{room}", &req.room_name)
+        .replace("{identity}", &req.identity);
+
+    let params = [
+        ("success_url", success_url),
+        ("cancel_url", cancel_url),
+        ("mode", "payment".to_string()),
+        ("line_items[0][price_data][currency]", currency),
+        ("line_items[0][price_data][unit_amount]", unit_amount),
+        (
+            "line_items[0][price_data][product_data][name]",
+            product_name,
+        ),
+        ("line_items[0][quantity]", "1".to_string()),
+        ("metadata[room_name]", req.room_name.clone()),
+        ("metadata[identity]", req.identity.clone()),
+    ];
+
+    client
+        .post("https://api.stripe.com/v1/checkout/sessions")
+        .basic_auth(stripe_secret, Some(""))
+        .form(&params)
+        .send()
+        .await
 }
